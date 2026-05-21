@@ -15,7 +15,7 @@ export default function Index() {
 
   const {userData, isLoading} = useUserProfile()
 
-  const { temp, weather } = useWeather(userData?.permissions?.location)
+  const { temp, weather, icon } = useWeather(userData?.permissions?.location)
 
   const clearStorage = async() => {
     await AsyncStorage.clear()
@@ -41,11 +41,6 @@ export default function Index() {
   if (!loaded) {
     return null
   }
-
-  
-
-
-
 
   return (
     <ScrollView className='bg-[#090a0b] p-2 '>
@@ -107,7 +102,7 @@ export default function Index() {
                   {weather}
                 </Text>
               </View>
-              <Image source={require('../../assets/cloudy.png')} style={{
+              <Image source={{ uri: `https://openweathermap.org/img/wn/${icon}@2x.png` }} style={{
                 width: 70,
                 height: 70,
               }} />

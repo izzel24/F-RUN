@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 
 type Weather = {
     temp: number | null,
-    weather: string | null
+    weather: string | null,
+    icon: string | null,
 }
 
 
@@ -13,6 +14,7 @@ export default function useWeather(hasPermission: boolean | undefined): Weather 
 
     const [temp, setTemp] = useState<number | null>(null)
     const [weather, setWeather] = useState<string | null>(null)
+    const [icon, setIcon] = useState<string | null>(null)
 
     useEffect(() => {
 
@@ -31,8 +33,10 @@ export default function useWeather(hasPermission: boolean | undefined): Weather 
 
                 const response = await axiosInstance.get(`/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${process.env.EXPO_PUBLIC_WEATHER_API_KEY}&units=metric`)
 
-                setTemp(response.data.main.temp)
+                console.log(response);
+                setTemp(response.data.main.temp);
                 setWeather(response.data.weather[0].main);
+                setIcon(response.data.weather[0].icon);
             } catch (error) {
                 console.log(error)
             }
@@ -44,6 +48,7 @@ export default function useWeather(hasPermission: boolean | undefined): Weather 
 
     return {
         temp,
-        weather
+        weather,
+        icon
     }
 }
