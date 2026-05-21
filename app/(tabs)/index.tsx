@@ -4,41 +4,22 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { Bell, Flame, Hourglass, Play, SportShoe } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage' 
-import { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
 import Greetings from 'components/greetings';
-import { getCurrentPositionAsync } from 'expo-location';
-import { axiosInstance } from 'libs/axios';
+import useWeather from 'hooks/useWeather';
+import useUserProfile from 'hooks/useUserProfile';
 
-type Permissions = {
-  location: boolean,
-  notifications?: boolean,
-  health?: boolean,
-}
-
-type UserProfile = {
-  age: number | null,
-  frequency: string | null,
-  goal: string | null,
-  height: number,
-  level: string,
-  name: string,
-  pace: string,
-  permissions: Permissions,
-  weight: number | null
-}
 
 
 export default function Index() {
 
-  const [userData, setUserData] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [lon, setLon] = useState<number | null>(null)
-  const [lat, setLat] = useState<number | null>(null)
-  const [temp, setTemp] = useState<number | null>(null)
-  const [weather, setWeather] = useState<string | null>(null)
+ 
 
   const messageGreetings = Greetings()
+
+  const {userData, isLoading} = useUserProfile()
+
+  const { temp, weather } = useWeather(userData?.permissions?.location)
 
   const clearStorage = async() => {
     await AsyncStorage.clear()
@@ -53,23 +34,6 @@ export default function Index() {
     Roboto_300Light,
   })
   
-  
-  useEffect(() => {
-      const getData = async() => {
-        try {
-          const response = await AsyncStorage.getItem('userProfile');
-          if(response !== null){
-            setUserData(JSON.parse(response))
-          }
-        } catch (error) {
-          console.log(error)
-        } finally{
-          setIsLoading(false)
-        }
-      }
-      getData();    
-    },[])
-
     if(isLoading){
       return null;
     }
@@ -82,34 +46,7 @@ export default function Index() {
     return null
   }
 
-  const getLongLat = async() => {
-    if(!userData.permissions.location){
-      return;
-    }
-
-    let location = await getCurrentPositionAsync()
-
-    console.log(location.coords.latitude)
-    console.log(location.coords.longitude)
-
-    setLat(location.coords.latitude)
-    setLon(location.coords.longitude)
-
-  }
- 
-  getLongLat()
-
-
-  const getWeather = async() => {
-    const response = await axiosInstance.get(`/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${process.env.EXPO_PUBLIC_WEATHER_API_KEY}&units=metric`)
-
-    console.log(response.data)
-
-    setTemp(response.data.main.temp)
-    setWeather(response.data.weather[0].main)
-  }
-
-  getWeather()
+  
 
 
 
