@@ -5,17 +5,13 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { Bell, Flame, Hourglass, Play, SportShoe } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage' 
 import { Redirect } from 'expo-router';
-import Greetings from 'components/greetings';
 import useWeather from 'hooks/useWeather';
 import useUserProfile from 'hooks/useUserProfile';
+import Greetings from 'utils/getGreetings';
 
 
 
 export default function Index() {
-
- 
-
-  const messageGreetings = Greetings()
 
   const {userData, isLoading} = useUserProfile()
 
@@ -60,7 +56,7 @@ export default function Index() {
               className='text-white text-xl'
               style={{ fontFamily: "Roboto_700Bold" }}
             >
-              {userData.name[0].toUpperCase()}
+              {userData?.name?.[0]?.toUpperCase()}
             </Text>
           </View>
 
@@ -69,7 +65,7 @@ export default function Index() {
               className='text-[#7C7D81] text-sm'
               style={{ fontFamily: "Roboto_400Regular" }}
             >
-              {messageGreetings}
+              <Greetings />
             </Text>
 
             <Text
