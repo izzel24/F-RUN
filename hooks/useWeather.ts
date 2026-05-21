@@ -1,6 +1,7 @@
 import { getCurrentPositionAsync } from "expo-location";
 import { axiosInstance } from "libs/axios";
 import { useEffect, useState } from "react";
+import useLocation from "./useLocation";
 
 
 type Weather = {
@@ -10,27 +11,16 @@ type Weather = {
 }
 
 
-export default function useWeather(hasPermission: boolean | undefined): Weather {
+export default function useWeather(lat: number | null , lon: number | null): Weather {
 
     const [temp, setTemp] = useState<number | null>(null)
     const [weather, setWeather] = useState<string | null>(null)
     const [icon, setIcon] = useState<string | null>(null)
 
+
     useEffect(() => {
-
-        if (!hasPermission) return;
-
         const getWeatherData = async () => {
             try {
-                let location = await getCurrentPositionAsync()
-
-                const lat = location.coords.latitude
-                const lon = location.coords.longitude
-
-                if (!lat || !lon) {
-                    return;
-                }
-
                 const response = await axiosInstance.get(`/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${process.env.EXPO_PUBLIC_WEATHER_API_KEY}&units=metric`)
 
                 console.log(response);
@@ -43,7 +33,7 @@ export default function useWeather(hasPermission: boolean | undefined): Weather 
         }
         getWeatherData()
 
-    }, [hasPermission])
+    }, [lat,lon])
 
 
     return {

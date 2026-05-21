@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router"
-import { ClipboardPenLine, House } from "lucide-react-native"
+import { ClipboardPenLine, House, Play } from "lucide-react-native"
+import { View } from "react-native"
 
 export default function Tablayout() {
   return (
@@ -23,6 +24,27 @@ export default function Tablayout() {
                 title: "Home",
                 tabBarIcon: ({ color, size }) => (
                     <House color={color} size={size} />
+                )
+            }}
+        />
+        <Tabs.Screen 
+            name="record"
+            options={{
+                title: "",
+                tabBarIcon: () => (
+
+                    <View
+                        className="w-20 h-20 rounded-full bg-[#BAE027] items-center justify-center -mt-5"
+                    >
+
+                        <Play
+                            color={"#090a0b"}
+                            size={28}
+                            fill={"#090a0b"}
+                        />
+
+                    </View>
+
                 )
             }}
         />

@@ -1,21 +1,26 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useFonts, Roboto_400Regular, Roboto_700Bold, Roboto_500Medium, Roboto_300Light } from '@expo-google-fonts/roboto'
 import { LinearGradient } from 'expo-linear-gradient'
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { Bell, Flame, Hourglass, Play, SportShoe } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage' 
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import useWeather from 'hooks/useWeather';
 import useUserProfile from 'hooks/useUserProfile';
 import Greetings from 'utils/getGreetings';
+import useLocation from 'hooks/useLocation';
+import { useState } from 'react';
 
 
 
 export default function Index() {
 
-  const {userData, isLoading} = useUserProfile()
+  const [refreshing, setRefreshing] = useState(false)
 
-  const { temp, weather, icon } = useWeather(userData?.permissions?.location)
+  const {userData, isLoading} = useUserProfile()
+  const { lat, lon } = useLocation(userData?.permissions?.location)
+
+  const { temp, weather, icon } = useWeather(lat, lon)
 
   const clearStorage = async() => {
     await AsyncStorage.clear()
@@ -42,8 +47,23 @@ export default function Index() {
     return null
   }
 
+  const onRefresh = async() => {
+
+      setRefreshing(true)
+
+      router.replace('/')
+
+      setRefreshing(false)
+  }
+
   return (
-    <ScrollView className='bg-[#090a0b] p-2 '>
+    <ScrollView className='bg-[#090a0b] p-2 ' 
+      refreshControl={
+        <RefreshControl 
+        refreshing={refreshing}
+        onRefresh={onRefresh}  />
+      }
+    >
       <View className='pt-14 pb-8 px-2 flex-row items-center justify-between'>
         <View className='flex-row items-center gap-4'>
           <View className='w-14 h-14 rounded-full bg-[#1b1c1f] items-center justify-center border border-[#2A2B2E]'>
@@ -187,11 +207,12 @@ export default function Index() {
                 <Text className='text-white text-4xl' style={{ fontFamily: 'Roboto_500Medium' }}>8:45 - 9:25<Text className='text-xl'> / km</Text></Text>
                 <Text className='text-white text-sm pt-2' style={{ fontFamily: 'Roboto_300Light' }}>Est. Time: 1 Hour 5 minutes</Text>
               </View>
-              <View className='rounded-full p-10 bg-[#bbe027]'>
-                <Pressable>
-                  <Play size={40} color={'#111214'} className='' />
+                <Pressable 
+                  onPress={() => router.push('/record')}
+                  className='rounded-full p-10 bg-[#bbe027]'
+                >
+                  <Play size={40} color={'#090a0b'} fill={"#090a0b"} className='' />
                 </Pressable>
-              </View>
             </View>
           </View>
         </View>

@@ -17,6 +17,13 @@ export default function RootLayout() {
                     headerShown:false
                 }}
             />
+            <Stack.Screen 
+                name='record'
+                options={{
+                    presentation: 'fullScreenModal',
+                    headerShown: false
+                }}
+            />
         </Stack>
     )
 }
