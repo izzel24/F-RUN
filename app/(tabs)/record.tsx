@@ -10,14 +10,10 @@ import useRunTracking from "hooks/useRunTracking"
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import formatDuration from "utils/formatDuration";
+import useRunStorage from "hooks/useRunStorage";
 
 
 export default function Record() {
-
-    const router = useRouter()
-    const [isRunning, setIsRunning] = useState(false)
-    const [seconds, setSeconds] = useState(0)
-    const [isFinish, setIsFinish] = useState(false)
 
     const [loaded] = useFonts({
         Roboto_800ExtraBold,
@@ -27,20 +23,21 @@ export default function Record() {
         Roboto_300Light
     })
 
+    const router = useRouter()
+    const [isRunning, setIsRunning] = useState(false)
+    const [seconds, setSeconds] = useState(0)
+    const [isFinish, setIsFinish] = useState(false)
+    const [isDiscardModal, setIsDiscardModal] = useState(false);
+
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
     const { locations, totalDistance, pace, resetRun } = useRunTracking(isRunning, seconds)
-    const [isDiscardModal, setIsDiscardModal] = useState(false);
+    const { saveRun } = useRunStorage()
 
     const totalDistanceInKm = totalDistance / 1000
-
     const latestRunLocation = locations[locations.length - 1]
-
-
     const currentLatitude = isRunning ? latestRunLocation?.latitude || lat : lat
-
     const currentLongitude = isRunning ? latestRunLocation?.longitude || lon : lon
-
     const mapRef = useRef<MapView | null>(null)
 
     useEffect(() => {
@@ -85,36 +82,30 @@ export default function Record() {
     const remainSeconds = formatDuration(seconds % 60)
 
 
-    const saveRun = async () => {
-        try {
-            const existing = await AsyncStorage.getItem("RUN_HISTORY");
-            const parsed = existing ? JSON.parse(existing) : [];
+    const resetAll = () => {
+        setIsRunning(false);
+        setSeconds(0);
+        setIsFinish(false);
+        resetRun()
+       
+    };
 
-            const newRun = {
-                id: Date.now().toString(),
-                date: new Date().toISOString(),
-                distance: totalDistanceInKm,
-                pace: pace,
-                duration: seconds,
-                route: locations,
-            };
+    const handleSaveRun = async() => {
 
-            const updated = [...parsed, newRun];
+        await saveRun({
+            distance: totalDistanceInKm,
+            pace: 0,
+            route: locations,
+            duration: seconds
+        })
 
-            await AsyncStorage.setItem("RUN_HISTORY", JSON.stringify(updated));
-        
-            setIsRunning(false);
-            setSeconds(0);
-            setIsFinish(false);
-            resetRun()
-            router.push('/')
-        } catch (err) {
-            console.log("SAVE RUN ERROR:", err);
-        }
-    };  
+        resetAll()
+
+        router.push('/')
+    }
 
     const back = () => {
-        if (seconds > 0 ) {
+        if (seconds > 0) {
             setIsDiscardModal(true);
             return;
         }
@@ -163,7 +154,7 @@ export default function Record() {
                                     Discard
                                 </Text>
                             </Pressable>
-                            <Pressable className="bg-[#BAE027] p-3 px-7 rounded-full" style={{ paddingInline: 20 }} onPress={() => saveRun()}>
+                            <Pressable className="bg-[#BAE027] p-3 px-7 rounded-full" style={{ paddingInline: 20 }} onPress={() => handleSaveRun()}>
                                 <Text className="text-black font-bold text-center" style={{ fontFamily: "Roboto_400Regular" }}>
                                     Save Run
                                 </Text>
