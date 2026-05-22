@@ -25,6 +25,7 @@
     "expo-location": "~19.0.8",
     "expo-router": "~6.0.23",
     "expo-status-bar": "~3.0.9",
+    "geolib": "^3.3.14",
     "lucide-react-native": "^1.16.0",
     "nativewind": "^4.2.4",
     "react": "19.1.0",

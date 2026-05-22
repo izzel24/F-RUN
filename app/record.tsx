@@ -1,35 +1,166 @@
 import { useRouter } from "expo-router";
 import useLocation from "hooks/useLocation";
 import useUserProfile from "hooks/useUserProfile";
-import { ChevronLeft, Play } from "lucide-react-native";
-import { Pressable, Text, View } from "react-native";
-import MapView, { Marker } from "react-native-maps"
-import {Roboto_800ExtraBold, Roboto_700Bold, Roboto_400Regular, Roboto_500Medium, useFonts} from "@expo-google-fonts/roboto"
+import { Check, ChevronLeft, Pause, Play } from "lucide-react-native";
+import { Modal, Pressable, Text, View } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps"
+import { Roboto_800ExtraBold, Roboto_700Bold, Roboto_400Regular, Roboto_500Medium, Roboto_300Light, useFonts } from "@expo-google-fonts/roboto"
+import { useEffect, useRef, useState } from "react";
+import useRunTracking from "hooks/useRunTracking"
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function Record() {
 
     const router = useRouter()
+    const [isRunning, setIsRunning] = useState(false)
+    const [seconds, setSeconds] = useState(0)
+    const [isFinish, setIsFinish] = useState(false)
 
-    const [loaded]= useFonts({
+    const [loaded] = useFonts({
         Roboto_800ExtraBold,
         Roboto_700Bold,
         Roboto_500Medium,
-        Roboto_400Regular
+        Roboto_400Regular,
+        Roboto_300Light
     })
 
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
+    const { locations, totalDistance, pace } = useRunTracking(isRunning, seconds)
+
+    const totalDistanceInKm = totalDistance / 1000
+
+    const latestRunLocation = locations[locations.length - 1]
+
+
+    const currentLatitude = isRunning ? latestRunLocation?.latitude || lat : lat
+
+    const currentLongitude = isRunning ? latestRunLocation?.longitude || lon : lon
+
+    const mapRef = useRef<MapView | null>(null)
+
+    useEffect(() => {
+
+        if (
+            !currentLatitude ||
+            !currentLongitude
+        ) return;
+
+        mapRef.current?.animateToRegion({
+
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+
+            latitudeDelta: 0.001,
+            longitudeDelta: 0.001,
+
+        })
+
+    }, [currentLatitude, currentLongitude])
+
+
+    useEffect(() => {
+
+        let interval;
+
+        if (isRunning) {
+
+            interval = setInterval(() => {
+
+                setSeconds(prev => prev + 1)
+
+            }, 1000)
+
+        }
+
+        return () => clearInterval(interval)
+
+    }, [isRunning])
+
+    const minutes = Math.floor(seconds / 60)
+    const remainSeconds = seconds % 60
+
+    const saveRun = async () => {
+        try {
+            const existing = await AsyncStorage.getItem("RUN_HISTORY");
+            const parsed = existing ? JSON.parse(existing) : [];
+
+            const newRun = {
+                id: Date.now().toString(),
+                date: new Date().toISOString(),
+                distance: totalDistanceInKm,
+                pace: pace,
+                duration: seconds,
+                route: locations,
+            };
+
+            const updated = [...parsed, newRun];
+
+            await AsyncStorage.setItem("RUN_HISTORY", JSON.stringify(updated));
+
+            setIsFinish(false);
+            router.push("/"); 
+        } catch (err) {
+            console.log("SAVE RUN ERROR:", err);
+        }
+    };
+
 
     return (
-        <View className="bg-[#090a0b] flex-1 relative">
-            <Pressable onPress={() => router.back()} className="absolute top-14 rounded-full left-2 z-50 p-3 bg-[#BAE027]">
-                <ChevronLeft color={'black'} size={20} />
+        <View className="bg-[#090a0b] h-screen relative">
+            <Pressable onPress={() => router.back()} className="absolute top-14 rounded-full left-2 z-50 p-3 bg-[#BAE027] items-center justify-center">
+                <ChevronLeft color={'black'} size={20} strokeWidth={4} />
             </Pressable>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isFinish}
+            >
+                <Pressable
+                    onPress={() => setIsFinish(false)}
+                    className="flex-1 bg-black/50 justify-center items-center w-full h-full" style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
+                >
+                    <View className="rounded-2xl " style={{ backgroundColor: "#090a0b", padding: 32, gap: 40 }}>
+                        <View>
+                            <Text className="text-white text-4xl text-center" style={{ fontFamily: "Roboto_500Medium" }}>
+                                Run Completed!!
+                            </Text>
+
+                            <Text className="text-white text-center mt-2" style={{ fontFamily: "Roboto_300Light" }}>
+                                Great job! Here’s your result
+                            </Text>
+                        </View>
+
+                        <View className="items-center">
+                            <Text className="text-[#BAE027] text-6xl font-bold" style={{ fontFamily: "Roboto_700Bold" }}>
+                                {totalDistanceInKm.toFixed(2)} km
+                            </Text>
+                            <Text className="text-white" style={{ fontFamily: "Roboto_400Regular" }}>
+                                {minutes.toString().padStart(2, "0")}:{remainSeconds.toString().padStart(2, "0")} • {pace.toFixed(2)} /km
+                            </Text>
+                        </View>
+                        <View className="flex-row justify-center gap-4">
+                            <Pressable onPress={() => setIsFinish(false)} className="p-3  bg-[#1b1c1f] rounded-full " style={{ paddingInline: 20 }}>
+                                <Text className="text-[#BAE027] text-center" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    Discard
+                                </Text>
+                            </Pressable>
+                            <Pressable className="bg-[#BAE027] p-3 px-7 rounded-full" style={{ paddingInline: 20 }} onPress={() => saveRun()}>
+                                <Text className="text-black font-bold text-center" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    Save Run
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
             <MapView
-                region={{
-                    latitude: lat,
-                    longitude: lon,
+                ref={mapRef}
+                initialRegion={{
+                    latitude: currentLatitude || -6.2,
+                    longitude: currentLongitude || 106.816,
                     latitudeDelta: 0.001,
                     longitudeDelta: 0.001,
                 }}
@@ -37,12 +168,12 @@ export default function Record() {
 
                 style={{
                     width: "100%",
-                    height: "50%",
+                    height: "35%",
                 }} >
                 <Marker
                     coordinate={{
-                        latitude: lat,
-                        longitude: lon
+                        latitude: currentLatitude,
+                        longitude: currentLongitude
                     }}
                 >
                     <View style={{
@@ -54,40 +185,72 @@ export default function Record() {
                     }}>
                     </View>
                 </Marker>
+                <Polyline
+                    coordinates={locations}
+                    strokeWidth={8}
+                    strokeColor="#BAE027"
+                />
             </MapView>
-            <View className="bg-[#1b1c1f] h-full -m-2 rounded-[30px] p-6 gap-4">
-                <View className="flex-row justify-between border-b-2 border-gray-400 p-4">
-                    <View className="gap-3 justify-center items-center">
-                        <Text className="text-white text-sm" style= {{fontFamily: "Roboto_400Regular"}}>
-                            DISTANCE (KM)
-                        </Text>
-                        <Text className="text-white text-[70px] leading-none" style= {{fontFamily: "Roboto_700Bold"}}>
-                            0.00
-                        </Text>
+            <View className="bg-[#090a0b] h-[65%] -m-2 rounded-t-[30px] ">
+                <View className="justify-between h-[75%] px-6 gap-4">
+                    <View className="h-full">
+                        <View className="flex-row h-[50%] justify-between border-b border-[#f9f9f91b] px-4">
+                            <View className="gap-3 justify-center items-center">
+                                <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    DISTANCE
+                                </Text>
+                                <View className="">
+                                    <Text className="text-white text-[64px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                        {totalDistanceInKm.toFixed(2)}
+                                    </Text>
+                                    <Text className="text-[#BAE027] text-[25px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                        km
+                                    </Text>
+                                </View>
+                            </View>
+                            <View className="gap-3 justify-center items-center">
+                                <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    AVG PACE
+                                </Text>
+                                <View>
+                                    <Text className="text-white text-[64px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                        {pace.toFixed(2)}
+                                    </Text>
+                                    <Text className="text-[#BAE027] text-[25px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                        /km
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                        <View className="h-[50%] items-center justify-center">
+                            <View className="gap-3 justify-center items-center ">
+                                <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    Time
+                                </Text>
+                                <Text className="text-white text-[90px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                    {minutes.toString().padStart(2, "0")}:{remainSeconds.toString().padStart(2, "0")}
+                                </Text>
+                            </View>
+                        </View>
                     </View>
-                    <View className="gap-3 justify-center items-center">
-                        <Text className="text-white text-sm" style= {{fontFamily: "Roboto_400Regular"}}>
-                            AVG PACE
-                        </Text>
-                        <Text className="text-white text-[70px] leading-none" style= {{fontFamily: "Roboto_700Bold"}}>
-                            0.00
-                        </Text>
+
+                    <View className="flex-row justify-center items-center relative h-[25%]">
+                        <Pressable onPress={() => setIsRunning(prev => !prev)} className={`${isRunning ? "bg-[#1b1c1f]" : "bg-[#BAE027]"} shadow-[0_0_3px_0_rgba(0,0,0,0.25)] p-7 rounded-full`}>
+                            {
+                                isRunning ? <Pause size={30} color={'#BAE027'} fill={"#BAE027"} className='' /> : <Play size={30} color={'#090a0b'} fill={"#090a0b"} className='' />
+                            }
+                        </Pressable>
+
+                        {
+                            seconds > 1 && !isRunning ? (
+                                <View className="absolute right-2 ">
+                                    <Pressable className="bg-[#1b1c1f] p-5 rounded-full" onPress={() => setIsFinish(true)}>
+                                        <Check color={"#BAE027"} size={20} strokeWidth={5} />
+                                    </Pressable>
+                                </View>
+                            ) : ""
+                        }
                     </View>
-                </View>
-                <View>
-                    <View className="gap-3 justify-center items-center pt-4">
-                        <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
-                            Time
-                        </Text>
-                        <Text className="text-white text-[70px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
-                            00:00
-                        </Text>
-                    </View>
-                </View>
-                <View className="items-center pt-4">
-                    <Pressable className="bg-[#BAE027] p-7 rounded-full">
-                        <Play size={30} color={'#090a0b'} fill={"#090a0b"} className='' />
-                    </Pressable>
                 </View>
             </View>
         </View>
