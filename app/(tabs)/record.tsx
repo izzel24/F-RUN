@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import useRunTracking from "hooks/useRunTracking"
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import formatDuration from "utils/formatDuration";
 
 
 export default function Record() {
@@ -28,7 +29,8 @@ export default function Record() {
 
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
-    const { locations, totalDistance, pace } = useRunTracking(isRunning, seconds)
+    const { locations, totalDistance, pace, resetRun } = useRunTracking(isRunning, seconds)
+    const [isDiscardModal, setIsDiscardModal] = useState(false);
 
     const totalDistanceInKm = totalDistance / 1000
 
@@ -79,8 +81,9 @@ export default function Record() {
 
     }, [isRunning])
 
-    const minutes = Math.floor(seconds / 60)
-    const remainSeconds = seconds % 60
+    const minutes = formatDuration(Math.floor(seconds / 60))
+    const remainSeconds = formatDuration(seconds % 60)
+
 
     const saveRun = async () => {
         try {
@@ -99,22 +102,35 @@ export default function Record() {
             const updated = [...parsed, newRun];
 
             await AsyncStorage.setItem("RUN_HISTORY", JSON.stringify(updated));
-
+        
+            setIsRunning(false);
+            setSeconds(0);
             setIsFinish(false);
-            router.push("/"); 
+            resetRun()
+            router.push('/')
         } catch (err) {
             console.log("SAVE RUN ERROR:", err);
         }
+    };  
+
+    const back = () => {
+        if (seconds > 0 ) {
+            setIsDiscardModal(true);
+            return;
+        }
+
+        resetRun()
+        router.back();
     };
 
 
     return (
-        <View className="bg-[#090a0b] h-screen relative">
-            <Pressable onPress={() => router.back()} className="absolute top-14 rounded-full left-2 z-50 p-3 bg-[#BAE027] items-center justify-center">
+        <View className="bg-[#090a0b] h-screen pb-20 relative">
+            <Pressable onPress={back} className="absolute top-14 rounded-full left-2 z-50 p-3 bg-[#BAE027] items-center justify-center">
                 <ChevronLeft color={'black'} size={20} strokeWidth={4} />
             </Pressable>
             <Modal
-                animationType="slide"
+                animationType="fade"
                 transparent={true}
                 visible={isFinish}
             >
@@ -156,6 +172,70 @@ export default function Record() {
                     </View>
                 </Pressable>
             </Modal>
+            <Modal
+                transparent
+                animationType="fade"
+                visible={isDiscardModal}
+            >
+                <Pressable
+                    onPress={() => setIsDiscardModal(false)}
+                    className="flex-1 justify-center items-center"
+                    style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
+                >
+                    <View
+                        className="rounded-2xl"
+                        style={{
+                            backgroundColor: "#090a0b",
+                            padding: 32,
+                            gap: 30,
+                            width: "80%",
+                        }}
+                    >
+                        <View>
+                            <Text
+                                className="text-white text-3xl text-center"
+                                style={{ fontFamily: "Roboto_500Medium" }}
+                            >
+                                Discard Run?
+                            </Text>
+
+                            <Text
+                                className="text-white text-center mt-2"
+                                style={{ fontFamily: "Roboto_300Light" }}
+                            >
+                                Your current run progress will be lost.
+                            </Text>
+                        </View>
+
+                        <View className="flex-row justify-center gap-4">
+                            <Pressable
+                                onPress={() => setIsDiscardModal(false)}
+                                className="bg-[#1b1c1f] p-3 rounded-full px-6"
+                            >
+                                <Text className="text-[#BAE027]">
+                                    Cancel
+                                </Text>
+                            </Pressable>
+
+                            <Pressable
+                                onPress={() => {
+                                    setIsRunning(false);
+                                    setSeconds(0);
+                                    setIsFinish(false);
+                                    setIsDiscardModal(false);
+
+                                    router.back();
+                                }}
+                                className="bg-[#BAE027] p-3 rounded-full px-6"
+                            >
+                                <Text className="text-[#090a0b]">
+                                    Discard
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
             <MapView
                 ref={mapRef}
                 initialRegion={{
@@ -168,7 +248,7 @@ export default function Record() {
 
                 style={{
                     width: "100%",
-                    height: "35%",
+                    height: "40%",
                 }} >
                 <Marker
                     coordinate={{
@@ -191,7 +271,7 @@ export default function Record() {
                     strokeColor="#BAE027"
                 />
             </MapView>
-            <View className="bg-[#090a0b] h-[65%] -m-2 rounded-t-[30px] ">
+            <View className="bg-[#090a0b] h-[60%] -m-2 rounded-t-[30px] ">
                 <View className="justify-between h-[75%] px-6 gap-4">
                     <View className="h-full">
                         <View className="flex-row h-[50%] justify-between border-b border-[#f9f9f91b] px-4">
@@ -228,7 +308,7 @@ export default function Record() {
                                     Time
                                 </Text>
                                 <Text className="text-white text-[90px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
-                                    {minutes.toString().padStart(2, "0")}:{remainSeconds.toString().padStart(2, "0")}
+                                    {minutes}:{remainSeconds}
                                 </Text>
                             </View>
                         </View>

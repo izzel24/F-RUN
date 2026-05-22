@@ -71,6 +71,11 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
 
     }, [isRunning])
 
+    const resetRun = () => {
+        setLocations([])
+        setTotalDistance(0)
+    }
+
     const distanceInKm = totalDistance / 1000
     const minutes = seconds / 60
     const pace = distanceInKm > 0 ? minutes /  distanceInKm : 0 
@@ -79,7 +84,8 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
     return {
         locations,
         totalDistance,
-        pace
+        pace,
+        resetRun
     }
 
 }
