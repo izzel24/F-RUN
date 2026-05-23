@@ -3,14 +3,14 @@ import useLocation from "hooks/useLocation";
 import useUserProfile from "hooks/useUserProfile";
 import { Check, ChevronLeft, Pause, Play } from "lucide-react-native";
 import { Modal, Pressable, Text, View } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps"
+import MapView from "react-native-maps"
 import { Roboto_800ExtraBold, Roboto_700Bold, Roboto_400Regular, Roboto_500Medium, Roboto_300Light, useFonts } from "@expo-google-fonts/roboto"
 import { useEffect, useRef, useState } from "react";
 import useRunTracking from "hooks/useRunTracking"
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import formatDuration from "utils/formatDuration";
 import useRunStorage from "hooks/useRunStorage";
+import useRunTimer from "hooks/useRunTimer";
+import RunMap from "components/RunMap";
 
 
 export default function Record() {
@@ -25,10 +25,10 @@ export default function Record() {
 
     const router = useRouter()
     const [isRunning, setIsRunning] = useState(false)
-    const [seconds, setSeconds] = useState(0)
     const [isFinish, setIsFinish] = useState(false)
     const [isDiscardModal, setIsDiscardModal] = useState(false);
 
+    const { seconds, minutes, remainSeconds, resetTimer } = useRunTimer(isRunning)
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
     const { locations, totalDistance, pace, resetRun } = useRunTracking(isRunning, seconds)
@@ -59,48 +59,21 @@ export default function Record() {
 
     }, [currentLatitude, currentLongitude])
 
-
-    useEffect(() => {
-
-        let interval;
-
-        if (isRunning) {
-
-            interval = setInterval(() => {
-
-                setSeconds(prev => prev + 1)
-
-            }, 1000)
-
-        }
-
-        return () => clearInterval(interval)
-
-    }, [isRunning])
-
-    const minutes = formatDuration(Math.floor(seconds / 60))
-    const remainSeconds = formatDuration(seconds % 60)
-
-
     const resetAll = () => {
         setIsRunning(false);
-        setSeconds(0);
+        resetTimer();
         setIsFinish(false);
         resetRun()
-       
     };
 
-    const handleSaveRun = async() => {
-
+    const handleSaveRun = async () => {
         await saveRun({
             distance: totalDistanceInKm,
             pace: 0,
             route: locations,
             duration: seconds
         })
-
         resetAll()
-
         router.push('/')
     }
 
@@ -113,7 +86,6 @@ export default function Record() {
         resetRun()
         router.back();
     };
-
 
     return (
         <View className="bg-[#090a0b] h-screen pb-20 relative">
@@ -211,7 +183,7 @@ export default function Record() {
                             <Pressable
                                 onPress={() => {
                                     setIsRunning(false);
-                                    setSeconds(0);
+                                    resetTimer();
                                     setIsFinish(false);
                                     setIsDiscardModal(false);
 
@@ -227,41 +199,13 @@ export default function Record() {
                     </View>
                 </Pressable>
             </Modal>
-            <MapView
-                ref={mapRef}
-                initialRegion={{
-                    latitude: currentLatitude || -6.2,
-                    longitude: currentLongitude || 106.816,
-                    latitudeDelta: 0.001,
-                    longitudeDelta: 0.001,
-                }}
-                userInterfaceStyle="dark"
-
-                style={{
-                    width: "100%",
-                    height: "40%",
-                }} >
-                <Marker
-                    coordinate={{
-                        latitude: currentLatitude,
-                        longitude: currentLongitude
-                    }}
-                >
-                    <View style={{
-                        backgroundColor: '#BAE027',
-                        padding: 10,
-                        borderRadius: 20,
-                        borderWidth: 3,
-                        borderColor: '#6F8518'
-                    }}>
-                    </View>
-                </Marker>
-                <Polyline
-                    coordinates={locations}
-                    strokeWidth={8}
-                    strokeColor="#BAE027"
-                />
-            </MapView>
+            <RunMap 
+                mapRef={mapRef} 
+                latitude={currentLatitude} 
+                longitude={currentLongitude} 
+                locations={locations} 
+                style={{ width: "100%", height: "40%" }} 
+                /> 
             <View className="bg-[#090a0b] h-[60%] -m-2 rounded-t-[30px] ">
                 <View className="justify-between h-[75%] px-6 gap-4">
                     <View className="h-full">
@@ -299,7 +243,7 @@ export default function Record() {
                                     Time
                                 </Text>
                                 <Text className="text-white text-[90px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
-                                    {minutes}:{remainSeconds}
+                                    {formatDuration(minutes)}:{formatDuration(remainSeconds)}
                                 </Text>
                             </View>
                         </View>

@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
 type Coordinate = { latitude: number, longitude: number }
 
@@ -9,8 +10,19 @@ type RunData = {
     route: Coordinate[]
 }
 
+type RunHistory = { 
+    id: string,
+    date: string,
+    distance: number,
+    pace: number,
+    duration: number,
+    route: Coordinate[]
+}
+
 
 export default function useRunStorage() {
+
+    const [runHistory, setRunHistory] = useState<RunHistory[]>([])
 
     const saveRun = async (runData: RunData) => {
         try {
@@ -35,11 +47,24 @@ export default function useRunStorage() {
         }
     }
 
-    const getRunData = async () => {
-        
-    }
+    useEffect(() => {
+        const getRunData = async() => {
+            try {
+                const runData = await AsyncStorage.getItem("RUN_HISTORY");
+    
+                if(runData) {
+                    setRunHistory(JSON.parse(runData)) 
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        getRunData()
+    }, [])
 
     return{
         saveRun,
+        runHistory,
     }
 }
