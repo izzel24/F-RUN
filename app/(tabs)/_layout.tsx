@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router"
-import { ClipboardPenLine, House, Play } from "lucide-react-native"
+import { ClipboardPenLine, House, Play, TimerReset } from "lucide-react-native"
 import { View } from "react-native"
 
 export default function Tablayout() {
@@ -42,6 +42,15 @@ export default function Tablayout() {
                     title: "Plan",
                     tabBarIcon: ({ color, size }) => (
                         <ClipboardPenLine color={color} size={size} />
+                    )
+                }}
+            />
+            <Tabs.Screen
+                name="history"
+                options={{
+                    title: "History",
+                    tabBarIcon: ({ color, size }) => (
+                        <TimerReset  color={color} size={size} />
                     )
                 }}
             />

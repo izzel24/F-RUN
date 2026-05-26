@@ -1,13 +1,23 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 
-type Coordinate = { latitude: number, longitude: number }
+type Coordinate = {
+    latitude: number,
+    longitude: number
+}
+
+type Split = {
+    kilometer: number,
+    pace: number,
+    duration: number
+}
 
 type RunData = {
     distance: number, 
     pace: number, 
     duration: number, 
-    route: Coordinate[]
+    route: Coordinate[],
+    split: Split[]
 }
 
 type RunHistory = { 
@@ -16,7 +26,8 @@ type RunHistory = {
     distance: number,
     pace: number,
     duration: number,
-    route: Coordinate[]
+    route: Coordinate[],
+    split: Split[]
 }
 
 
@@ -36,6 +47,7 @@ export default function useRunStorage() {
                 pace: runData.pace,
                 duration: runData.duration,
                 route: runData.route,
+                split: runData.split
             };
 
             const updated = [...parsed, newRun];
@@ -47,24 +59,46 @@ export default function useRunStorage() {
         }
     }
 
-    useEffect(() => {
-        const getRunData = async() => {
-            try {
-                const runData = await AsyncStorage.getItem("RUN_HISTORY");
-    
-                if(runData) {
-                    setRunHistory(JSON.parse(runData)) 
-                }
-            } catch (error) {
-                console.log(error)
+    const getRunData = async () => {
+        try {
+            const runData = await AsyncStorage.getItem("RUN_HISTORY");
+
+            if (runData) {
+                const parseRunData: RunHistory[] = JSON.parse(runData)
+                setRunHistory(parseRunData.sort((a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                ))
             }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const getRunDataWithId = (id: string): RunHistory | undefined => {
+        return runHistory.find(item => item.id === id)
+    }
+
+    const deleteRun = async (id: string) => {
+        try {
+            const newRun = runHistory.filter((item) => item.id !== id)
+            await AsyncStorage.setItem('RUN_HISTORY', JSON.stringify(newRun))
+            setRunHistory(newRun)
+
+        } catch (error) {
+            console.log(error)
         }
 
+    }
+
+    useEffect(() => {
         getRunData()
     }, [])
 
     return{
         saveRun,
+        getRunData,
+        getRunDataWithId,
+        deleteRun,
         runHistory,
     }
 }

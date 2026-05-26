@@ -28,16 +28,16 @@ export default function Record() {
     const [isFinish, setIsFinish] = useState(false)
     const [isDiscardModal, setIsDiscardModal] = useState(false);
 
-    const { seconds, minutes, remainSeconds, resetTimer } = useRunTimer(isRunning)
+    const { seconds, resetTimer } = useRunTimer(isRunning)
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
-    const { locations, totalDistance, pace, resetRun } = useRunTracking(isRunning, seconds)
+    const { locations, totalDistance, pace, resetRun, split } = useRunTracking(isRunning, seconds)
     const { saveRun } = useRunStorage()
 
     const totalDistanceInKm = totalDistance / 1000
     const latestRunLocation = locations[locations.length - 1]
-    const currentLatitude = isRunning ? latestRunLocation?.latitude || lat : lat
-    const currentLongitude = isRunning ? latestRunLocation?.longitude || lon : lon
+    const currentLatitude =   latestRunLocation?.latitude || lat
+    const currentLongitude =  latestRunLocation?.longitude || lon
     const mapRef = useRef<MapView | null>(null)
 
     useEffect(() => {
@@ -69,9 +69,10 @@ export default function Record() {
     const handleSaveRun = async () => {
         await saveRun({
             distance: totalDistanceInKm,
-            pace: 0,
+            pace: pace,
             route: locations,
-            duration: seconds
+            duration: seconds,
+            split: split,
         })
         resetAll()
         router.push('/')
@@ -83,7 +84,7 @@ export default function Record() {
             return;
         }
 
-        resetRun()
+        resetAll()
         router.back();
     };
 
@@ -117,7 +118,7 @@ export default function Record() {
                                 {totalDistanceInKm.toFixed(2)} km
                             </Text>
                             <Text className="text-white" style={{ fontFamily: "Roboto_400Regular" }}>
-                                {minutes.toString().padStart(2, "0")}:{remainSeconds.toString().padStart(2, "0")} • {pace.toFixed(2)} /km
+                                {formatDuration(seconds)} • {pace.toFixed(2)} /km
                             </Text>
                         </View>
                         <View className="flex-row justify-center gap-4">
@@ -205,6 +206,7 @@ export default function Record() {
                 longitude={currentLongitude} 
                 locations={locations} 
                 style={{ width: "100%", height: "40%" }} 
+                isMarkerHidden={false}
                 /> 
             <View className="bg-[#090a0b] h-[60%] -m-2 rounded-t-[30px] ">
                 <View className="justify-between h-[75%] px-6 gap-4">
@@ -243,7 +245,7 @@ export default function Record() {
                                     Time
                                 </Text>
                                 <Text className="text-white text-[90px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
-                                    {formatDuration(minutes)}:{formatDuration(remainSeconds)}
+                                    {formatDuration(seconds)}
                                 </Text>
                             </View>
                         </View>

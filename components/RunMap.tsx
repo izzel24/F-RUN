@@ -1,5 +1,6 @@
-import { ReactNode, Ref, RefObject } from "react";
-import { StyleProp, View, ViewStyle } from "react-native";
+import { Play } from "lucide-react-native";
+import { ReactNode, Ref, RefObject, useEffect, useState } from "react";
+import { Pressable, StyleProp, View, ViewStyle } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
 
@@ -16,13 +17,23 @@ type Props = {
     latitudeDelta?: number | null,
     longitudeDelta?: number | null,
     locations?: Coordinate[],
-    style?: StyleProp<ViewStyle> | null
-
+    style?: StyleProp<ViewStyle> | null,
+    isPreview?: boolean,
+    isMarkerHidden?: boolean 
 }
 
 export default function RunMap(props: Props) {
+
+    let preview = false
+    if(props.isPreview){
+        preview = props.isPreview
+    }
+
     return (
         <MapView
+            liteMode= {preview }
+            scrollEnabled={!preview}
+            zoomEnabled={!preview}
             ref={props.mapRef}
             initialRegion={{
                 latitude: props.latitude || -6.2,
@@ -33,28 +44,31 @@ export default function RunMap(props: Props) {
             userInterfaceStyle="dark"
             style={props.style}
         >
-            <Marker
-                coordinate={{
-                    latitude: props.latitude,
-                    longitude: props.longitude
-                }}
-            >
-                <View style={{
-                    backgroundColor: '#BAE027',
-                    padding: 10,
-                    borderRadius: 20,
-                    borderWidth: 3,
-                    borderColor: '#6F8518'
-                }}>
-                </View>
-            </Marker>
+            {props.isMarkerHidden === false &&
+                <Marker
+                    coordinate={{
+                        latitude: props.latitude,
+                        longitude: props.longitude
+                    }}
+                >
+                    <View style={{
+                        backgroundColor: '#BAE027',
+                        padding: 10,
+                        borderRadius: 20,
+                        borderWidth: 3,
+                        borderColor: '#6F8518'
+                    }}>
+                    </View>
+                </Marker>
+            }
 
             {props.locations ? <Polyline
                 coordinates={props.locations}
                 strokeWidth={8}
                 strokeColor="#BAE027"
-            />: ""}
-
+            />: null}
+            
+           
         </MapView>
     )
 }

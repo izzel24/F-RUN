@@ -5,6 +5,7 @@
       "nativewind/types"
     ],
     "strict": true,
+    
     "baseUrl": ".",
     "paths": {
       "@/*": [
