@@ -68,7 +68,7 @@ export default function Goals() {
                 JSON.stringify(updated)
             );
 
-            router.push("/onboarding/level");
+            router.push("/onboarding/frequency");
 
         } catch (error) {
             console.log(error);
@@ -99,7 +99,7 @@ export default function Goals() {
                             "Roboto_500Medium",
                     }}
                 >
-                    Step 1 of 6
+                    Step 1 of 5
                 </Text>
 
                 <View className="gap-2">

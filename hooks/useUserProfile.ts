@@ -12,7 +12,7 @@ type UserProfile = {
     frequency: string | null,
     goal: string | null,
     height: number | null,
-    level: string | null,
+    // level: string | null,
     name: string | null,
     pace: string | null,
     permissions: Permissions,

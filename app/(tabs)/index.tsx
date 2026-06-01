@@ -3,30 +3,58 @@ import { useFonts, Roboto_400Regular, Roboto_700Bold, Roboto_500Medium, Roboto_3
 import { LinearGradient } from 'expo-linear-gradient'
 import { AnimatedCircularProgress } from 'react-native-circular-progress'
 import { Bell, Flame, Hourglass, Play, SportShoe } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage' 
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Redirect, router } from 'expo-router';
 import useWeather from 'hooks/useWeather';
 import useUserProfile from 'hooks/useUserProfile';
 import Greetings from 'utils/getGreetings';
 import useLocation from 'hooks/useLocation';
 import { useState } from 'react';
+import useRunnerLevel from 'utils/calculateRunnerLevel';
 
 
 
 export default function Index() {
 
   const [refreshing, setRefreshing] = useState(false)
-
-  const {userData, isLoading} = useUserProfile()
+  const { userData, isLoading } = useUserProfile()
   const { lat, lon } = useLocation(userData?.permissions?.location)
-
   const { temp, weather, icon } = useWeather(lat, lon)
+  const { recommendedPlan, score, bmi, level } = useRunnerLevel({
+    age: userData?.age,
+    frequency: userData?.frequency,
+    height: userData?.height,
+    pace: userData?.pace,
+    weight: userData?.weight
+  })
 
-  const clearStorage = async() => {
-    await AsyncStorage.clear()
+  const levelColors = {
+    Beginner: "bg-[#52525b]",
+    Intermediate: "bg-yellow-500",
+    Advanced: "bg-red-500",
+  } as const;
+
+  let currentLevelMax = 50
+  let previousLevelMin = 0
+
+  if (level === "Intermediate") {
+    currentLevelMax = 75
+    previousLevelMin = 50
   }
 
-  // clearStorage()
+  if (level === "Advanced") {
+    currentLevelMax = 100
+    previousLevelMin = 75
+  }
+
+  const progress = ((score - previousLevelMin) / (currentLevelMax - previousLevelMin)) * 100
+  const nextLevel =
+    level === "Beginner"
+      ? "Intermediate"
+      : level === "Intermediate"
+        ? "Advanced"
+        : "Max";
+
 
   const [loaded] = useFonts({
     Roboto_400Regular,
@@ -34,34 +62,36 @@ export default function Index() {
     Roboto_500Medium,
     Roboto_300Light,
   })
-  
-    if(isLoading){
-      return null;
-    }
 
-    if(!userData){
-      return <Redirect href={'/onboarding'} />
-    }
+  if (isLoading) {
+    return null;
+  }
+
+  if (!userData) {
+    return <Redirect href={'/onboarding'} />
+  }
 
   if (!loaded) {
     return null
   }
 
-  const onRefresh = async() => {
+  const onRefresh = async () => {
 
-      setRefreshing(true)
+    setRefreshing(true)
 
-      router.replace('/')
+    router.replace('/')
 
-      setRefreshing(false)
+    setRefreshing(false)
   }
 
+
+
   return (
-    <ScrollView className='bg-[#090a0b] p-2 ' 
+    <ScrollView className='bg-[#090a0b] p-2 '
       refreshControl={
-        <RefreshControl 
-        refreshing={refreshing}
-        onRefresh={onRefresh}  />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh} />
       }
     >
       <View className='pt-14 pb-8 px-2 flex-row items-center justify-between'>
@@ -75,20 +105,51 @@ export default function Index() {
             </Text>
           </View>
 
-          <View className='gap-1'>
-            <Text
+          <View className='w-[70%]'>
+            {/* <Text
               className='text-[#7C7D81] text-sm'
               style={{ fontFamily: "Roboto_400Regular" }}
             >
               <Greetings />
-            </Text>
+            </Text> */}
+            <View className='flex-row gap-2'>
+              <Text
+                className='text-white text-2xl leading-none'
+                style={{ fontFamily: "Roboto_700Bold" }}
+              >
+                {userData.name}
+              </Text>
+              <View className={`p-1 px-3 ${levelColors[level]} rounded-full items-center justify-center`}>
+                <Text className='text-white text-sm leading-none'
+                  style={{ fontFamily: "Roboto_400Regular" }}>
+                  {level}
+                </Text>
+              </View>
+            </View>
+            <View className="mt-2 flex-row items-center gap-2">
 
-            <Text
-              className='text-white text-2xl leading-none'
-              style={{ fontFamily: "Roboto_700Bold" }}
-            >
-              {userData.name}
-            </Text>
+              <Text
+                className="text-[#7C7D81] text-sm"
+                style={{ fontFamily: "Roboto_400Regular" }}
+              >
+                {score} XP
+              </Text>
+
+              <View className="flex-1 h-1.5 bg-[#222] rounded-full overflow-hidden">
+                <View
+                  className="h-full bg-[#BAE027]"
+                  style={{ width: `${progress}%` }}
+                />
+              </View>
+
+              <Text
+                className="text-[#BAE027] text-sm"
+                style={{ fontFamily: "Roboto_500Medium" }}
+              >
+                {nextLevel}
+              </Text>
+
+            </View>
           </View>
 
         </View>
@@ -207,12 +268,12 @@ export default function Index() {
                 <Text className='text-white text-4xl' style={{ fontFamily: 'Roboto_500Medium' }}>8:45 - 9:25<Text className='text-xl'> / km</Text></Text>
                 <Text className='text-white text-sm pt-2' style={{ fontFamily: 'Roboto_300Light' }}>Est. Time: 1 Hour 5 minutes</Text>
               </View>
-                <Pressable 
-                  onPress={() => router.push('/record')}
-                  className='rounded-full p-10 bg-[#bbe027]'
-                >
-                  <Play size={40} color={'#090a0b'} fill={"#090a0b"} className='' />
-                </Pressable>
+              <Pressable
+                onPress={() => router.push('/record')}
+                className='rounded-full p-10 bg-[#bbe027]'
+              >
+                <Play size={40} color={'#090a0b'} fill={"#090a0b"} className='' />
+              </Pressable>
             </View>
           </View>
         </View>

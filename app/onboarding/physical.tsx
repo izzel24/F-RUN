@@ -26,7 +26,6 @@ export default function Physical() {
     const savePhysicalData = async () => {
         try {
 
-            // ambil profile lama
             const existing = await AsyncStorage.getItem(
                 "userProfile"
             );
@@ -34,22 +33,17 @@ export default function Physical() {
             const parsed = existing
                 ? JSON.parse(existing)
                 : {};
-
-            // update profile
             const updated = {
                 ...parsed,
                 age: age || null,
                 weight: weight || null,
                 height: height || null,
             };
-
-            // save lagi
             await AsyncStorage.setItem(
                 "userProfile",
                 JSON.stringify(updated)
             );
 
-            // next screen
             router.push("/onboarding/permissions");
 
         } catch (error) {
@@ -69,15 +63,13 @@ export default function Physical() {
         <ScrollView className="bg-[#090a0b] px-6 pt-24">
 
             <View className="flex-1">
-
-                {/* HEADER */}
                 <View className="gap-3">
 
                     <Text
                         className="text-[#BAE027] text-base"
                         style={{ fontFamily: "Roboto_400Regular" }}
                     >
-                        Step 5 of 6
+                        Step 4 of 5
                     </Text>
 
                     <Text
@@ -96,10 +88,7 @@ export default function Physical() {
 
                 </View>
 
-                {/* INPUTS */}
                 <View className="pt-10 gap-5">
-
-                    {/* AGE */}
                     <View className="gap-2">
                         <Text
                             className="text-white text-base"

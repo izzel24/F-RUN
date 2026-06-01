@@ -2,13 +2,10 @@ import { View, Text, Pressable, ActivityIndicator, ScrollView } from "react-nati
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import calculateRunnerLevel from "utils/calculateRunnerLevel";
+import useRunnerProfileStorage from "hooks/useRunnerProfileStorage";
 
-import {
-    useFonts,
-    Roboto_700Bold,
-    Roboto_500Medium,
-    Roboto_400Regular,
-} from "@expo-google-fonts/roboto";
+import {useFonts, Roboto_700Bold, Roboto_500Medium, Roboto_400Regular,} from "@expo-google-fonts/roboto";
 
 type UserProfile = {
     goal?: string;
@@ -20,17 +17,28 @@ type UserProfile = {
     height?: string | null;
 };
 
+
 export default function Summary() {
     const router = useRouter();
 
-    const [profile, setProfile] =
-        useState<UserProfile | null>(null);
-
+    const { saveRunnerProfile } = useRunnerProfileStorage()
+    
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    
     const [loaded] = useFonts({
         Roboto_700Bold,
         Roboto_500Medium,
         Roboto_400Regular,
     });
+    
+    const runnerProfile =
+        calculateRunnerLevel({
+            age: Number(profile?.age),
+            weight: Number(profile?.weight),
+            height: Number(profile?.height),
+            frequency: profile?.frequency,
+            pace: profile?.pace,
+        });
 
     useEffect(() => {
         loadProfile();
@@ -63,12 +71,8 @@ export default function Summary() {
     return (
         <ScrollView className="bg-[#090a0b] px-6 pt-24 pb-24 ">
             <View className="flex-1 justify-between">
-
-                {/* CONTENT */}
                 <View className="gap-8">
-                    {/* HEADER */}
                     <View className="gap-3">
-
                         <Text
                             className="text-[#BAE027] text-base"
                             style={{ fontFamily: "Roboto_400Regular" }}
@@ -91,11 +95,7 @@ export default function Summary() {
                         </Text>
 
                     </View>
-
-                    {/* SUMMARY CARD */}
                     <View className="bg-[#111214] border border-[#1E1E1E] rounded-3xl p-6 gap-6">
-
-                        {/* GOAL */}
                         <View className="gap-1">
                             <Text
                                 className="text-[#7E7E7E] text-sm"
@@ -111,31 +111,11 @@ export default function Summary() {
                                 {profile.goal}
                             </Text>
                         </View>
-
-                        {/* LEVEL */}
                         <View className="gap-1">
                             <Text
                                 className="text-[#7E7E7E] text-sm"
                                 style={{ fontFamily: "Roboto_400Regular" }}
                             >
-                                Running Level
-                            </Text>
-
-                            <Text
-                                className="text-white text-2xl"
-                                style={{ fontFamily: "Roboto_700Bold" }}
-                            >
-                                {profile.level}
-                            </Text>
-                        </View>
-
-                        {/* FREQUENCY */}
-                        <View className="gap-1">
-                            <Text
-                                className="text-[#7E7E7E] text-sm"
-                                style={{ fontFamily: "Roboto_400Regular" }}
-                            >
-                                Weekly Frequency
                             </Text>
 
                             <Text
@@ -146,7 +126,6 @@ export default function Summary() {
                             </Text>
                         </View>
 
-                        {/* PACE */}
                         <View className="gap-1">
                             <Text
                                 className="text-[#7E7E7E] text-sm"
@@ -165,21 +144,23 @@ export default function Summary() {
 
                     </View>
 
-                    {/* SMART MESSAGE */}
                     <View className="bg-[#BAE02714] border border-[#BAE02733] rounded-3xl p-5">
 
-                        <Text
-                            className="text-[#BAE027] text-lg leading-8"
-                            style={{ fontFamily: "Roboto_500Medium" }}
-                        >
-                            F-RUN will adapt your training intensity, recovery, and pacing recommendations as you progress.
+                        <Text className="text-white">
+                            Level: {runnerProfile.level}
+                        </Text>
+
+                        <Text className="text-white">
+                            Score: {runnerProfile.score}
+                        </Text>
+
+                        <Text className="text-white">
+                            Plan: {runnerProfile.recommendedPlan}
                         </Text>
 
                     </View>
 
                 </View>
-
-                {/* BUTTON */}
                 <View className="pt-10">
 
                     <Pressable

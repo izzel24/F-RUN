@@ -17,7 +17,8 @@ type RunData = {
     pace: number, 
     duration: number, 
     route: Coordinate[],
-    split: Split[]
+    split: Split[],
+    calories: number
 }
 
 type RunHistory = { 
@@ -27,7 +28,8 @@ type RunHistory = {
     pace: number,
     duration: number,
     route: Coordinate[],
-    split: Split[]
+    split: Split[],
+    calories: number
 }
 
 
@@ -47,7 +49,8 @@ export default function useRunStorage() {
                 pace: runData.pace,
                 duration: runData.duration,
                 route: runData.route,
-                split: runData.split
+                split: runData.split,
+                calories: runData.calories
             };
 
             const updated = [...parsed, newRun];

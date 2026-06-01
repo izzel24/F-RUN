@@ -9,6 +9,7 @@ import {
 } from "@expo-google-fonts/roboto";
 
 const paces = [
+    "< 4:00 /km",
     "5:00 – 6:00 /km",
     "6:00 – 7:00 /km",
     "7:00 – 8:00 /km",
@@ -28,8 +29,6 @@ export default function Pace() {
 
     const savePace = async (pace: string | null) => {
         try {
-
-            // ambil profile lama
             const existing = await AsyncStorage.getItem(
                 "userProfile"
             );
@@ -37,20 +36,14 @@ export default function Pace() {
             const parsed = existing
                 ? JSON.parse(existing)
                 : {};
-
-            // update profile
             const updated = {
                 ...parsed,
                 pace: pace,
             };
-
-            // save lagi
             await AsyncStorage.setItem(
                 "userProfile",
                 JSON.stringify(updated)
             );
-
-            // next screen
             router.push("/onboarding/physical");
 
         } catch (error) {
@@ -62,14 +55,13 @@ export default function Pace() {
         <ScrollView className="bg-[#090a0b] px-6 pt-24 pb-24">
             <View className="flex-1 ">
 
-                {/* HEADER */}
                 <View className="gap-3">
 
                     <Text
                         className="text-[#BAE027] text-base"
                         style={{ fontFamily: "Roboto_400Regular" }}
                     >
-                        Step 4 of 6
+                        Step 3 of 5
                     </Text>
 
                     <Text
@@ -87,8 +79,6 @@ export default function Pace() {
                     </Text>
 
                 </View>
-
-                {/* OPTIONS */}
                 <View className="pt-10 gap-4">
 
                     {paces.map((pace) => (

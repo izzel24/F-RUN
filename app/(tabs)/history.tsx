@@ -31,20 +31,23 @@ export default function History() {
 
     return (
         <SafeAreaView
-            className=" bg-[#090a0b]"
+            className=" bg-[#090a0b] min-h-screen"
             edges={["top"]}
         >
-        <ScrollView className="px-5"
-            refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    tintColor="#fffff0" // iOS
-                    colors={["#fffff0"]} 
-                />
-            }
+            <ScrollView className=""
+                contentContainerStyle={{
+                    paddingBottom: 120
+                }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#fffff0"
+                        colors={["#fffff0"]}
+                    />
+                }
         >
-            <View className="gap-5 h-screen items-center">
+                <View className="gap-5 w-full px-5">
                 {runHistory.map((item) => (
                     <Swipeable key={item.id}
                         overshootRight={false}
@@ -60,7 +63,7 @@ export default function History() {
                             </View>
                         )}
                     >
-                        <Pressable className=" w-full rounded-xl overflow-hidden" onPress={() => router.push(`/history/${item.id}`)}>
+                        <Pressable className="w-full rounded-xl overflow-hidden" onPress={() => router.push(`/history/${item.id}`)}>
                             <RunMap
                                 isPreview={true}
                                 latitude={item.route[Math.floor(item.route.length / 2)].latitude}
@@ -71,24 +74,70 @@ export default function History() {
                                 style={{ width: "100%", height: 130 }}
                                 isMarkerHidden={true}
                             />
-                            <View className="h-[120px]  bg-[#1b1c1f] pt-5 ">
-                                <View className="flex-row gap-4 justify-between items-center px-5">
-                                    <View className="gap-2 items-center">
-                                        <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>Distance (KM)</Text>
-                                        <Text className="text-white text-5xl leading-none" style={{ fontFamily: "Roboto_700Bold" }}>{item.distance.toFixed(2)}</Text>
+                            <View className="h-[120px] w-full bg-[#1b1c1f] pt-5">
+
+                                <View className="flex-row px-3">
+
+                                    <View className="flex-1 items-center gap-2">
+                                        <Text
+                                            className="text-white text-xs"
+                                            style={{ fontFamily: "Roboto_400Regular" }}
+                                        >
+                                            Distance (KM)
+                                        </Text>
+
+                                        <Text
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                            className="text-white text-4xl leading-none"
+                                            style={{ fontFamily: "Roboto_700Bold" }}
+                                        >
+                                            {item.distance.toFixed(2)}
+                                        </Text>
                                     </View>
-                                    <View className="gap-2 items-center">
-                                        <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>Pace</Text>
-                                        <Text className="text-white text-5xl leading-none" style={{ fontFamily: "Roboto_700Bold" }}>{item.pace.toFixed(2)}</Text>
+
+                                    <View className="flex-1 items-center gap-2">
+                                        <Text
+                                            className="text-white text-xs"
+                                            style={{ fontFamily: "Roboto_400Regular" }}
+                                        >
+                                            Pace
+                                        </Text>
+
+                                        <Text
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                            className="text-white text-4xl leading-none"
+                                            style={{ fontFamily: "Roboto_700Bold" }}
+                                        >
+                                            {item.pace.toFixed(2)}
+                                        </Text>
                                     </View>
-                                    <View className="gap-2 items-center">
-                                        <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>Duration</Text>
-                                        <Text className="text-white text-5xl leading-none" style={{ fontFamily: "Roboto_700Bold" }}>{formatDuration(item.duration)}</Text>
+
+                                    <View className="flex-1 items-center gap-2">
+                                        <Text
+                                            className="text-white text-xs"
+                                            style={{ fontFamily: "Roboto_400Regular" }}
+                                        >
+                                            Duration
+                                        </Text>
+
+                                        <Text
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                            className="text-white text-4xl leading-none"
+                                            style={{ fontFamily: "Roboto_700Bold" }}
+                                        >
+                                            {formatDuration(item.duration)}
+                                        </Text>
                                     </View>
+
                                 </View>
+
                                 <Pressable className="justify-center items-end mt-auto h-9 px-5 bg-gray-800">
                                     <ChevronRight color={"white"} size={20} />
                                 </Pressable>
+
                             </View>
                         </Pressable>
                     </Swipeable>

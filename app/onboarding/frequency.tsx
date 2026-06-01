@@ -36,7 +36,6 @@ export default function Frequency() {
     const saveFrequency = async (frequency: string) => {
         try {
 
-            // ambil data lama
             const existing = await AsyncStorage.getItem(
                 "userProfile"
             );
@@ -45,19 +44,15 @@ export default function Frequency() {
                 ? JSON.parse(existing)
                 : {};
 
-            // update profile
             const updated = {
                 ...parsed,
                 frequency: frequency,
             };
-
-            // save lagi
             await AsyncStorage.setItem(
                 "userProfile",
                 JSON.stringify(updated)
             );
 
-            // next screen
             router.push("/onboarding/pace");
 
         } catch (error) {
@@ -67,15 +62,13 @@ export default function Frequency() {
 
     return (
         <View className="flex-1 bg-[#090a0b] px-6 pt-24">
-
-            {/* HEADER */}
             <View className="gap-3">
 
                 <Text
                     className="text-[#BAE027] text-base"
                     style={{ fontFamily: "Roboto_400Regular" }}
                 >
-                    Step 3 of 6
+                    Step 2 of 5
                 </Text>
 
                 <Text
@@ -93,8 +86,6 @@ export default function Frequency() {
                 </Text>
 
             </View>
-
-            {/* OPTIONS */}
             <View className="pt-10 gap-4">
 
                 {frequencies.map((item) => (

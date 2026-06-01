@@ -1,10 +1,10 @@
 import RunMap from 'components/RunMap'
-import { useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import useRunStorage from 'hooks/useRunStorage'
 import { Text, View, ScrollView, Pressable } from 'react-native'
 import { LineChart } from "react-native-gifted-charts";
 import { useEffect, useRef, useState } from 'react';
-import { Play, Pause } from 'lucide-react-native';
+import { Play, Pause, ChevronLeft } from 'lucide-react-native';
 import formatDuration from 'utils/formatDuration';
 import MapView from 'react-native-maps';
 import { Roboto_300Light, Roboto_400Regular, Roboto_700Bold, Roboto_800ExtraBold, useFonts } from '@expo-google-fonts/roboto';
@@ -79,8 +79,10 @@ export default function HistoryDetail() {
         <ScrollView
             className='flex-1 bg-[#090a0b] '
         >
-
             <View className='relative'>
+                <Pressable onPress={() => router.back()} className="absolute top-14 rounded-full left-2 z-50 p-3 bg-[#BAE027] items-center justify-center">
+                    <ChevronLeft color={'black'} size={20} strokeWidth={4} />
+                </Pressable>
                 <RunMap
                     mapRef={mapRef}
                     latitude={replayLocation.latitude || run.route[Math.floor(run.route.length / 2)].latitude}
@@ -114,7 +116,7 @@ export default function HistoryDetail() {
             <View className='py-5 gap-2'>
                 <View className='px-3'>
                     <View className='bg-[#1b1c1f] flex-1 p-5 gap-4 rounded-2xl'>
-                        <View className='flex-row justify-around w-full pb-5 border-b border-b-gray-400'>
+                        <View className='flex-row justify-around w-full pb-5 border-b border-b-[#2d2d2da4]'>
                             <View className='px-2 items-center'>
                                 <Text className='text-gray-400 text-sm mb-2' style={{ fontFamily: "Roboto_300Light" }}>Distance</Text>
                                 <Text className='text-white text-6xl leading-none' style={{ fontFamily: "Roboto_800ExtraBold" }}>{run.distance.toFixed(2)}</Text>
@@ -126,14 +128,25 @@ export default function HistoryDetail() {
                                 <Text className='text-[#BAE027] text-xl leading-none' style={{ fontFamily: "Roboto_400Regular" }}>/km</Text>
                             </View>
                         </View>
-                        <View className='items-center'>
-                            <Text className='text-gray-400 text-sm mb-2' style={{ fontFamily: "Roboto_300Light" }}>
-                                Duration
-                            </Text>
+                        <View className='items-center justify-around flex-row'>
+                            <View className='items-center'>
+                                <Text className='text-gray-400 text-sm mb-2' style={{ fontFamily: "Roboto_300Light" }}>
+                                    Duration
+                                </Text>
 
-                            <Text className='text-white text-6xl leading-none' style={{ fontFamily: "Roboto_800ExtraBold" }}>
-                                {formatDuration(run.duration)}
-                            </Text>
+                                <Text className='text-white text-6xl leading-none' style={{ fontFamily: "Roboto_800ExtraBold" }}>
+                                    {formatDuration(run.duration)}
+                                </Text>
+                            </View>
+                            <View className='items-center'>
+                                <Text className='text-gray-400 text-sm mb-2' style={{ fontFamily: "Roboto_300Light" }}>
+                                    Est. Calories Burn
+                                </Text>
+
+                                <Text className='text-white text-6xl leading-none' style={{ fontFamily: "Roboto_800ExtraBold" }}>
+                                    {run.calories.toFixed(1)}
+                                </Text>
+                            </View>
                         </View>
                     </View>
                 </View>

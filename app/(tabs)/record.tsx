@@ -31,7 +31,7 @@ export default function Record() {
     const { seconds, resetTimer } = useRunTimer(isRunning)
     const { userData } = useUserProfile()
     const { lat, lon } = useLocation(userData?.permissions?.location)
-    const { locations, totalDistance, pace, resetRun, split } = useRunTracking(isRunning, seconds)
+    const { locations, totalDistance, pace, resetRun, split, calories } = useRunTracking(isRunning, seconds, userData?.weight)
     const { saveRun } = useRunStorage()
 
     const totalDistanceInKm = totalDistance / 1000
@@ -73,6 +73,7 @@ export default function Record() {
             route: locations,
             duration: seconds,
             split: split,
+            calories: calories
         })
         resetAll()
         router.push('/')
@@ -239,13 +240,21 @@ export default function Record() {
                                 </View>
                             </View>
                         </View>
-                        <View className="h-[50%] items-center justify-center">
+                        <View className="h-[50%] gap-4 flex-row items-center justify-center">
                             <View className="gap-3 justify-center items-center ">
                                 <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
                                     Time
                                 </Text>
-                                <Text className="text-white text-[90px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                <Text className="text-white text-[64px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
                                     {formatDuration(seconds)}
+                                </Text>
+                            </View>
+                            <View className="gap-3 justify-center items-center ">
+                                <Text className="text-white text-sm" style={{ fontFamily: "Roboto_400Regular" }}>
+                                    Calories Burn
+                                </Text>
+                                <Text className="text-white text-[64px] leading-none" style={{ fontFamily: "Roboto_700Bold" }}>
+                                    {calories.toFixed(1)}
                                 </Text>
                             </View>
                         </View>

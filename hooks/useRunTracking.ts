@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import * as Location from "expo-location"
 import { getDistance } from "geolib"
+import { Weight } from "lucide-react-native"
 
 type Coordinate = {
     latitude: number,
@@ -13,7 +14,7 @@ type Split = {
     duration: number
 }
 
-export default function useRunTracking(isRunning: boolean, seconds: number) {
+export default function useRunTracking(isRunning: boolean, seconds: number, weight: number | null | undefined) {
 
     const [locations, setLocations] = useState<Coordinate[]>([])
     const [split, setSplit] = useState<Split[]>([])
@@ -38,7 +39,7 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
 
         const startTracking = async () => {
             subscription = await Location.watchPositionAsync({
-                accuracy: Location.Accuracy.High,
+                accuracy: Location.Accuracy.BestForNavigation,
                 timeInterval: 3000,
                 distanceInterval: 3,
             }, (location) => {
@@ -54,8 +55,8 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
                     return;
                 }
                 const fakeCoords = {
-                    latitude: lastLocation.latitude - 0.00003,
-                    longitude: lastLocation.longitude - 0.00000
+                    latitude: lastLocation.latitude + 0.00003,
+                    longitude: lastLocation.longitude - 0.0000
                 }
                 const distance =
                     getDistance({
@@ -68,7 +69,7 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
                         }
                     )
 
-                if (distance < 1) {
+                if (distance < 3) {
                     return;
                 }
 
@@ -136,6 +137,13 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
     const distanceInKm = totalDistance / 1000
     const minutes = seconds / 60
     const pace = distanceInKm > 0 ? minutes /  distanceInKm : 0 
+    let calories: number
+
+    if (weight) {
+        calories = distanceInKm * weight * 1.036
+    } else {
+        calories = distanceInKm * 60 * 1.036
+    }
 
 
     return {
@@ -143,7 +151,8 @@ export default function useRunTracking(isRunning: boolean, seconds: number) {
         totalDistance,
         pace,
         resetRun,
-        split
+        split,
+        calories
     }
 
 }

@@ -24,14 +24,9 @@ export default function Permissions() {
     const requestPermissions = async () => {
         try {
 
-            // GPS Permission
-            const locationPermission =
-                await Location.requestForegroundPermissionsAsync();
+            const locationPermission = await Location.requestForegroundPermissionsAsync();
 
-            const locationGranted =
-                locationPermission.status === "granted";
-
-            // save permission status
+            const locationGranted = locationPermission.status === "granted";
             const existing = await AsyncStorage.getItem(
                 "userProfile"
             );
@@ -51,8 +46,6 @@ export default function Permissions() {
                 "userProfile",
                 JSON.stringify(updated)
             );
-
-            // next screen
             router.push("/onboarding/summary");
 
         } catch (error) {
@@ -62,18 +55,14 @@ export default function Permissions() {
 
     return (
         <View className="flex-1 bg-[#090a0b] px-6 pt-24 justify-between">
-
-            {/* CONTENT */}
             <View className="gap-10">
-
-                {/* HEADER */}
                 <View className="gap-3">
 
                     <Text
                         className="text-[#BAE027] text-base"
                         style={{ fontFamily: "Roboto_400Regular" }}
                     >
-                        Step 6 of 6
+                        Step 5 of 5
                     </Text>
 
                     <Text
@@ -91,11 +80,7 @@ export default function Permissions() {
                     </Text>
 
                 </View>
-
-                {/* PERMISSION CARDS */}
                 <View className="gap-4">
-
-                    {/* LOCATION */}
                     <View className="bg-[#111214] border border-[#1E1E1E] rounded-3xl p-5 flex-row gap-4">
 
                         <View className="w-14 h-14 rounded-2xl bg-[#BAE0271A] items-center justify-center">
